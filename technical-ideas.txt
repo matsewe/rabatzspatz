@@ -1,0 +1,76 @@
+= Basics =
+Functionality
+* keeping track of shedules
+* scoring
+* managing spirit (immediate response to rated team?)
+
+Each team needs (at least) one person in charge of scoring and spirit. Communication via this person.
+
+= Options =
+* (dis)allow regular users to enter game scores
+
+= Actions =
+Reminders for pending actions are sent whenever an action is required, e.g., a person signs up, a game is over, a score is created, etc.
+
+= MISC =
+Dialogs (with buttons) should be automatically removed (by editing message?) when the action has become unnecessary
+Live scoring: TODO
+
+= Database =
+Use a (sql) database for storing everything
+
+== Teams ==
+ID int NOT NULL AUTO_INCREMENT,
+Name varchar(255) NOT NULL,
+PRIMARY KEY (ID)
+
+== Persons ==
+ID int NOT NULL AUTO_INCREMENT,
+FirstName varchar(255) NOT NULL,
+LastName varchar(255) NOT NULL,
+UserName varchar(255) NOT NULL,
+ChatID varchar(255) NOT NULL, /* Something to identify this person/chat on telegram */
+Team int NOT NULL,
+Confirmed bit NOT NULL,
+Admin bit NOT NULL,
+PRIMARY KEY (ID),
+FOREIGN KEY (Team) REFERENCES Teams(ID)
+
+== Games ==
+ID int NOT NULL AUTO_INCREMENT,
+TeamA int NOT NULL,
+TeamB int NOT NULL,
+Time datetime NOT NULL,
+PRIMARY KEY (ID),
+FOREIGN KEY (TeamA) REFERENCES Teams(ID),
+FOREIGN KEY (TeamB) REFERENCES Teams(ID)
+
+== Scores ==
+ID int NOT NULL AUTO_INCREMENT,
+Game int NOT NULL,
+AddedBy int NOT NULL,
+ScoreA int NOT NULL,
+ScoreB int NOT NULL,
+ConfirmedBy int, /* A responsible person of the opponents team or an admin (some JOINS should be able to handle this) has to confirm the score */
+LiveScoring bit NOT NULL, /* If live scoring is enabled for this game, do not allow any other user interaction. Do not ask for scores, etc. */
+PRIMARY KEY (ID),
+FOREIGN KEY (Game) REFERENCES Games(ID),
+FOREIGN KEY (AddedBy) REFERENCES Persons(ID),
+FOREIGN KEY (ConfirmedBy) REFERENCES Persons(ID),
+
+== Spirit ==
+ID int NOT NULL AUTO_INCREMENT,
+Game int NOT NULL,
+AddedBy int NOT NULL,
+ForTeam int NOT NULL, /* Which team is being rated */
+Rules tinyint NOT NULL,
+Fouls tinyint NOT NULL,
+Fairplay tinyint NOT NULL,
+Attitude tinyint NOT NULL,
+Communication tinyint NOT NULL,
+Comments TEXT,
+Approved bit NOT NULL, /* Show comments only, if approved by an administrator */
+PRIMARY KEY (ID),
+FOREIGN KEY (Game) REFERENCES Games(ID),
+FOREIGN KEY (AddedBy) REFERENCES Persons(ID),
+FOREIGN KEY (ForTeam) REFERENCES Teams(ID)

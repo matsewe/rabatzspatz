@@ -1,0 +1,4 @@
+.idea
+docker/data/app/mysecrets.py
+docker/data/app/__pycache__/*
+docker/data/app/__pycache__

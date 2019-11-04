@@ -1,0 +1,72 @@
+== USER DIALOGS ==
+
+=== on establishing the conversation with the bot ===
+Hi $NAME,
+would you like to sign up as person in charge of scoring and spirit for your team at $TOURNAMENT? Just press the button assigned to your team. Note: this action needs to be confirmed by an administrator.
+
+=== on being confirmed as person in charge ===
+You've just been confirmed as person in charge of scoring and spirit for the team $TEAM at $TOURNAMENT. I will help you and your team through the tournament:
+- I will prompt for your input whenever required for scoring and/or spirit.
+- I will send you notifications about changes in shedule and anything else that might come up.
+- I will notify you about your upcoming games. You can change this behavior by typing `/notifications off` or `/notifications on`.
+- You can ask me for your personal shedule (including scores) by typing `/shedule`. Type `/shedule full` for the full shedule.
+- You can ask me for your spirit by typing `/spirit`.
+- You can ask me for your next game by typing `/next`.
+- If you have a question and don't know whom to ask: Send me a message, I will forward it to the correct person.
+- If you ever forget about these commands, type `/help`.
+
+I wish you and your team a great tournament!
+
+=== before each game (if notifications are enabled) ===
+Your next game against $OPPONENT starts at $START on court $LOCATION.
+
+=== after each game ===
+
+
+== USER ACTIONS ==
+/help                   - display all valid actions
+/notifications [on/off] - turn notifications about the next game on or off
+/shedule [full]         - print the personal (or full) shedule including scores
+/spirit                 - print personal spirit ratings
+/next                   - print information about your next game
+/whatsup                - print information about the currently running game
+
+
+
+== ADMIN DIALOGS ==
+
+=== score editing mode ===
+==== 1 ====
+Please select a team participating in the game you want to score
+[Button: $TEAM1]
+[Button: $TEAM2]
+[...]
+
+==== 2 ====
+Please select the game you want to score:
+$SELECTED_TEAM vs
+[Button: $TEAM1 at $DATE1]
+[Button: $TEAM2 at $DATE2]
+[...]
+
+==== 3 ====
+You have selected $GAME for scoring. The currently set score is $SCORE. [Attention: This game is not finished yet!] Please enter the correct score in the format `10:12` or type `-` for not changing anything.
+
+=== live scoring mode ===
+==== 1 ====
+Please select one of the active games for live scoring: /* the list may include games starting shortly, e.g., within 10 minutes. */
+[Button: $GAME1]
+[...]
+
+==== 2 ====
+$GAME
+Current score: $SCORE
+Press the buttons to increment the scores. Type `/confirm` when the game is finished to confirm the score and exit live scoring mode.
+[Button: $TEAM1]
+[Button: $TEAM2]
+
+
+== ADMIN ACTIONS ==
+/help         - display all valid actions
+/edit_scores  - go into score editing mode
+/live_scoring - go into live scoring mode
