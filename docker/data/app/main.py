@@ -1,19 +1,4 @@
 # -*- coding: utf-8 -*-
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-Simple Bot to reply to Telegram messages.
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-
-Add command descriptions
-https://stackoverflow.com/questions/34457568/how-to-show-options-in-telegram-bot
-"""
 
 import logging
 import pymysql
@@ -42,7 +27,7 @@ def logged_execute(self, data):
 
 pymysql.cursors.Cursor.logged_execute = logged_execute
 
-db = pymysql.connect("db", "rabatzspatz", "spatznrabatz", "rabatzspatz")
+db = pymysql.connect("db", "rabatzspatz", "spatznrabatz", "rabatzspatz", autocommit=True)
 cursor = db.cursor()
 
 
@@ -62,8 +47,11 @@ def button_callback(data, fun_handle):
 
 
 def add_person(update, context, team):
-    user_data = update.callback_query.message.chat  # Attention! The update's contents change depending on where we are ...
+    user_data = update.callback_query.message.chat  # Attention! The update's contents change depending on where we are ... Rather use context ...
     logger.info(f'''Add Person {user_data} to team {team}''')
+    logger.info(f'''{context.user_data}''')
+    logger.info(f'''{context.chat_data}''')
+
     first_name = user_data.first_name
     last_name = user_data.last_name
     user_name = user_data.username
@@ -73,8 +61,10 @@ def add_person(update, context, team):
     db.commit()
 
     cursor.logged_execute(f'''SELECT Name FROM Teams WHERE ID={team}''')
+
     team_name = cursor.fetchone()[0]
-    return f'''Hey {first_name}. You are now part of team {team_name}. This will be confirmed by an administrator soon.'''
+
+    update.callback_query.edit_message_text(text=f'''Hey {first_name}. You are now part of team {team_name}. This will be confirmed by an administrator soon.''')
 
 
 # Define a few command handlers. These usually take the two arguments update and
@@ -86,7 +76,7 @@ def start(update, context):
 
     cursor.logged_execute(f'''SELECT * FROM Persons WHERE ChatID={user_data.id}''')
 
-    if cursor.rownumber == 1:
+    if cursor.rowcount >= 1:
         logger.info(f'''Already signed up: {user_data}''')
         update.message.reply_text(
             'You already signed up. Please contact and administrator, if you have any questions.')
@@ -121,32 +111,34 @@ def error(update, context):
 
 
 def setMood(update, context, mood):
-    return "Your mood is {}".format(mood)
+    update.callback_query.edit_message_text(text="Your mood is {}".format(mood))
+
 
 
 def callback_notifications(context: telegram.ext.CallbackContext):
     logger.info('Send notifications')
     cursor.logged_execute("SELECT * FROM Persons")
+
     persons = cursor.fetchall()
     for person in persons:
-        print(person)
+        logger.info(person)
         buttons = [
             telegram.InlineKeyboardButton("good", callback_data=button_callback(1, setMood)),
             telegram.InlineKeyboardButton("um ...", callback_data=button_callback(0, setMood)),
             telegram.InlineKeyboardButton("bad", callback_data=button_callback(-1, setMood))
         ]
         # three-column-layout [[button1, button2, button3]]
-        context.bot.send_message(chat_id=person[4],
-                                 text="Hey {}, How is your mood today?".format(person[1]),
-                                 reply_markup=telegram.InlineKeyboardMarkup([buttons]))
+        #context.bot.send_message(chat_id=person[4],
+        #                         text="Hey {}, How is your mood today?".format(person[1]),
+        #                         reply_markup=telegram.InlineKeyboardMarkup([buttons]))
 
 
 def button(update, context):
     query = update.callback_query
     cb = button_callbacks[query.data]
     logger.info(f'''Button {query.data}, executing {cb}''')
+    cb[0](update, context, cb[1])
 
-    query.edit_message_text(text=cb[0](update, context, cb[1]))
 
 
 def main():
@@ -154,6 +146,7 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
+
     updater = Updater(mysecrets.telegramToken(), use_context=True)
 
     # Get the dispatcher to register handlers
@@ -162,16 +155,15 @@ def main():
     # Get the job queue to check for upcoming games, finished games, ...
     jq = updater.job_queue
 
-    #
     job_notifications = jq.run_repeating(callback_notifications, interval=60, first=0)
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("help", help, Filters.chat(-1234)))
     dp.add_handler(CallbackQueryHandler(button))
 
     # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, echo))
+    # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
