@@ -1,4 +1,9 @@
-# -*- coding: utf-8 -*-
+"""
+Based on basic Echobot example
+
+Add command descriptions
+https://stackoverflow.com/questions/34457568/how-to-show-options-in-telegram-bot
+"""
 
 import logging
 import pymysql
@@ -56,7 +61,7 @@ def add_person(update, context, team):
     last_name = user_data.last_name
     user_name = user_data.username
     chat_id = user_data.id
-    cursor.logged_execute(f'''INSERT INTO Persons (FirstName, LastName, UserName, ChatID, Team, Confirmed, Admin) 
+    cursor.logged_execute(f'''INSERT INTO Persons (FirstName, LastName, UserName, ChatID, Team, Confirmed, Admin)
         VALUES ("{first_name}", "{last_name}", "{user_name}", {chat_id}, {team}, 0, 0)''')
     db.commit()
 
